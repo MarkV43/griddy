@@ -144,3 +144,21 @@ impl<T> Grid<T> {
         }
     }
 }
+
+impl<T> Grid<Option<T>> {
+    pub fn or(self, other: Self) -> Self {
+        assert_eq!(self.width, other.width);
+        assert_eq!(self.height, other.height);
+
+        Self {
+            width: self.width,
+            height: self.height,
+            data: self
+                .into_vec()
+                .into_iter()
+                .zip(other.into_vec().into_iter())
+                .map(|(a, b)| a.or(b))
+                .collect(),
+        }
+    }
+}
