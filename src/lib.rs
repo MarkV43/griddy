@@ -3,6 +3,7 @@ use std::{
     slice::{Iter, IterMut},
 };
 
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct Grid<T> {
     width: usize,
     height: usize,
@@ -160,5 +161,42 @@ impl<T> Grid<Option<T>> {
                 .map(|(a, b)| a.or(b))
                 .collect(),
         }
+    }
+
+    pub fn and_then<U>(self, f: impl FnOnce(T) -> Option<U> + Clone) -> Grid<Option<U>> {
+        Grid {
+            width: self.width,
+            height: self.height,
+            data: self
+                .into_vec()
+                .into_iter()
+                .map(|a| a.and_then(f.clone()))
+                .collect(),
+        }
+    }
+
+    pub fn option_map<U>(self, f: impl FnOnce(T) -> U + Clone) -> Grid<Option<U>> {
+        Grid {
+            width: self.width,
+            height: self.height,
+            data: self
+                .into_vec()
+                .into_iter()
+                .map(|a| a.map(f.clone()))
+                .collect(),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn and_then_works() {
+        let g = Grid::from_vec(vec![None, Some(2), Some(3), Some(4)], 2);
+        let r = g.and_then(|x| Some(x * x));
+
+        assert_eq!(r, Grid::from_vec(vec![None, Some(4), Some(9), Some(16)], 2));
     }
 }
